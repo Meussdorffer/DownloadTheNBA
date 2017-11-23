@@ -102,18 +102,23 @@ def getGameLinks(html_string, post_2000=True):
     return game_info
 
 
-def scrapeGameData(link, date, home_team, away_team, OT):
+def scrapeGameData(data):
     '''
-    Returns a data frame containing joined data for both the home team and away team for a given link to a game.
-    Uses date, home_team, away_team as inputs to differentiate games.
+    Input: 1 row dataframe contianing the following game data:
+        Home Team
+        Away Team
+        Date
+        OT
+        BoxScore link
+    Returns box score table for both teams in game
     '''
 
-    print('Scraping data for game ' + away_team + ' at ' + home_team + ' on ' + date)
+    print('Scraping data for game ' + data['Away Team'] + ' at ' + data['Home Team'] + ' on ' + data['Date'])
 
     try:
-        tbl_data = pd.read_html(link, header= 1)
+        tbl_data = pd.read_html(data['BoxScore'], header= 1)
     except ValueError:
-        print('No tables found for {}'.format(link))
+        print('No tables found for {}'.format(data['BoxScore']))
         return None
 
     # Box score data lies in tables [0], [2] for away, home team
@@ -121,9 +126,9 @@ def scrapeGameData(link, date, home_team, away_team, OT):
     hm_data = pd.DataFrame(tbl_data[2])
 
     # Assigning team information to respective data frames
-    hm_data['Team'], awy_data['Team'] = home_team, away_team
-    hm_data['Opposing Team'], awy_data['Opposing Team'] = away_team, home_team
-    hm_data['Home / Away'], awy_data['Home / Away'] = 'Y', 'N'
+    hm_data['Team'], awy_data['Team'] = data['Home Team'], data['Away Team']
+    hm_data['Opposing Team'], awy_data['Opposing Team'] = data['Away Team'], data['Home Team']
+    hm_data['Home'], awy_data['Home'] = 'Y', 'N'
 
     # Joining data
     joined = pd.concat([hm_data, awy_data])
@@ -131,9 +136,9 @@ def scrapeGameData(link, date, home_team, away_team, OT):
     # Additional cleaning of joined data frame
     joined = joined.loc[~joined['Starters'].isin(['Reserves', 'Team Totals']), :] # Removes table delimiters
     joined.columns.values[0] = 'Player'
-    joined['Date'] = date
-    joined['Game Link'] = link
-    joined['OT'] = OT
+    joined['Date'] = data['Date']
+    joined['Game Link'] = data['BoxScore']
+    joined['OT'] = data['OT']
     joined = joined.fillna(0)
     joined = cleanMinutes(joined)
 

@@ -23,8 +23,8 @@ startTime = datetime.datetime.now()
 
 # Assemble HTML strings at a year-month level from year (x) to year (y)
 # and creating a table of game info and box score links for every game played
-start_yr = 1989
-end_yr = 1989
+start_yr = 2000
+end_yr = 2000
 html_strings = assembleSeasonHTML(start_yr, end_yr)
 
 
@@ -52,19 +52,20 @@ for year_month in html_strings:
 # Joining list of dfs
 all_gamedata = pd.concat(gamedata)
 
+
 ######################################################
 #       SCRAPING BOX-SCORES FOR ALL GAMES            #
 ######################################################
 
 games = []
 
-for index, row in all_gamedata.iterrows():
+for index in range(len(all_gamedata.index)):
 
     # Waiting 5 seconds before trying to scrape next game
     if do_sleep:
         sleep(5)
 
-    df = scrapeGameData(row['BoxScore'], row['Date'], row['Home Team'], row['Away Team'], row['OT'])
+    df = scrapeGameData(all_gamedata.iloc[index,:])
     games.append(df)
 
 data = pd.concat(games)
