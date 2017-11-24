@@ -120,10 +120,17 @@ def scrapeGameData(data):
     except ValueError:
         print('No tables found for {}'.format(data['BoxScore']))
         return None
-
+    
     # Box score data lies in tables [0], [2] for away, home team
-    awy_data = pd.DataFrame(tbl_data[0])
-    hm_data = pd.DataFrame(tbl_data[2])
+    if len(tbl_data) > 2:
+        awy_data = pd.DataFrame(tbl_data[0])
+        hm_data = pd.DataFrame(tbl_data[2])
+    elif len(tbl_data) == 2:
+        # Many older games do not have advanced stat tables
+        awy_data = pd.DataFrame(tbl_data[0])
+        hm_data = pd.DataFrame(tbl_data[1])
+    else:
+        print('Tables could not be read for following game:\n', data)
 
     # Assigning team information to respective data frames
     hm_data['Team'], awy_data['Team'] = data['Home Team'], data['Away Team']
